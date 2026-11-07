@@ -5,7 +5,8 @@ import {
     getAllAuthorsController,
     getAuthorByIdController,
     createAuthorController,
-    updateAuthorController
+    updateAuthorController,
+    deleteAuthorController
 
 } from './controllers/authors.js';
 
@@ -270,5 +271,34 @@ router.post('/authors', createAuthorController);
  *         description: Internal server error.
  */
 router.put('/authors/:id', updateAuthorController);
+
+
+/**
+ * @swagger
+ * /authors/{id}:
+ *   delete:
+ *     summary: Delete an author
+ *     description: Deletes an author only if no books are associated with them.
+ *     tags: [Authors]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The unique identifier of the author to delete.
+ *         schema:
+ *           type: string
+ *         example: "a5"
+ *     responses:
+ *       204:
+ *         description: Author successfully deleted.
+ *       404:
+ *         description: Author not found.
+ *       409:
+ *         description: Cannot delete author because associated books exist.
+ *       500:
+ *         description: Internal server error.
+ */
+router.delete('/authors/:id', deleteAuthorController);
+
 
 export default router;

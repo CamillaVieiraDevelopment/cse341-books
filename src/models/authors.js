@@ -47,5 +47,35 @@ const updateAuthor = async (id, author) => {
     return await authorsCollection.findOne({ id });
 };
 
+const deleteAuthor = async (id) => {
+    const db = getDb();
 
-export { getAllAuthors, getAuthorById, createAuthor, updateAuthor };
+    const authorsCollection = db.collection("authors");
+    const booksCollection = db.collection("books");
+
+    // Check whether the author exists
+    const author = await authorsCollection.findOne({ id });
+
+    if (!author) {
+        return { status: "not_found" };
+    }
+
+    // Check whether the author has associated books
+    const associatedBook = await booksCollection.findOne({
+        authorId: id
+    });
+
+    if (associatedBook) {
+        return { status: "has_books" };
+    }
+
+    // Delete the author
+    await authorsCollection.deleteOne({ id });
+
+    return { status: "deleted" };
+};
+
+
+
+export {
+    getAllAuthors, getAuthorById, createAuthor, updateAuthor, deleteAuthor};

@@ -1,6 +1,11 @@
 
 import {
-    getAllAuthors, getAuthorById, createAuthor, updateAuthor } from "../models/authors.js";
+    getAllAuthors,
+    getAuthorById,
+    createAuthor,
+    updateAuthor,
+    deleteAuthor
+} from "../models/authors.js";
 
 const getAllAuthorsController = async (req, res) => {
     try {
@@ -15,6 +20,7 @@ const getAllAuthorsController = async (req, res) => {
         });
     }
 };
+
 const getAuthorByIdController = async (req, res) => {
     try {
         const author = await getAuthorById(req.params.id);
@@ -35,7 +41,6 @@ const getAuthorByIdController = async (req, res) => {
     }
 };
 
-
 const createAuthorController = async (req, res) => {
     try {
         const { id, name, birthYear } = req.body;
@@ -46,6 +51,7 @@ const createAuthorController = async (req, res) => {
             typeof name !== "string" || !name.trim() ||
             typeof birthYear !== "number" ||
             !Number.isInteger(birthYear) ||
+            birthYear <= 0 ||
             birthYear > new Date().getFullYear()
         ) {
             return res.status(400).json({
@@ -53,8 +59,10 @@ const createAuthorController = async (req, res) => {
             });
         }
 
+        const normalizedId = id.trim();
+
         // Check if the custom ID already exists
-        const existingAuthor = await getAuthorById(id);
+        const existingAuthor = await getAuthorById(normalizedId);
 
         if (existingAuthor) {
             return res.status(409).json({
@@ -63,7 +71,7 @@ const createAuthorController = async (req, res) => {
         }
 
         const newAuthor = {
-            id: id.trim(),
+            id: normalizedId,
             name: name.trim(),
             birthYear
         };
@@ -74,12 +82,18 @@ const createAuthorController = async (req, res) => {
     } catch (error) {
         console.error("Error creating author:", error);
 
+        // Handle duplicate key errors from MongoDB
+        if (error.code === 11000) {
+            return res.status(409).json({
+                error: "An author with this ID already exists."
+            });
+        }
+
         return res.status(500).json({
             error: "Unable to create author."
         });
     }
 };
-
 
 const updateAuthorController = async (req, res) => {
     try {
@@ -98,6 +112,7 @@ const updateAuthorController = async (req, res) => {
             typeof name !== "string" || !name.trim() ||
             typeof birthYear !== "number" ||
             !Number.isInteger(birthYear) ||
+            birthYear <= 0 ||
             birthYear > new Date().getFullYear()
         ) {
             return res.status(400).json({
@@ -126,7 +141,38 @@ const updateAuthorController = async (req, res) => {
     }
 };
 
+const deleteAuthorController = async (req, res) => {
+    try {
+        const { id } = req.params;
 
+        const result = await deleteAuthor(id);
+
+        if (result.status === "not_found") {
+            return res.status(404).json({
+                error: "Author not found."
+            });
+        }
+
+        if (result.status === "has_books") {
+            return res.status(409).json({
+                error: "Cannot delete author because associated books exist."
+            });
+        }
+
+        return res.status(204).send();
+    } catch (error) {
+        console.error("Error deleting author:", error);
+
+        return res.status(500).json({
+            error: "Unable to delete author."
+        });
+    }
+};
 
 export {
-    getAllAuthorsController, getAuthorByIdController, createAuthorController, updateAuthorController};   
+    getAllAuthorsController,
+    getAuthorByIdController,
+    createAuthorController,
+    updateAuthorController,
+    deleteAuthorController
+};

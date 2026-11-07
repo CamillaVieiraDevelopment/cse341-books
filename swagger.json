@@ -332,6 +332,39 @@
             "description": "Internal server error."
           }
         }
+      },
+      "delete": {
+        "summary": "Delete an author",
+        "description": "Deletes an author only if no books are associated with them.",
+        "tags": [
+          "Authors"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "The unique identifier of the author to delete.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "a5"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Author successfully deleted."
+          },
+          "404": {
+            "description": "Author not found."
+          },
+          "409": {
+            "description": "Cannot delete author because associated books exist."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
       }
     }
   },
