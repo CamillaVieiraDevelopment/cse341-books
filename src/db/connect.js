@@ -1,5 +1,5 @@
-
-import { MongoClient } from "mongodb";
+// src/db/connect.js
+import { MongoClient } from 'mongodb';
 
 let database;
 
@@ -7,20 +7,31 @@ const connectToDb = async () => {
     const connectionString = process.env.MONGODB_URI;
 
     if (!connectionString) {
-        throw new Error("MONGODB_URI is required.");
+        throw new Error('MONGODB_URI is required.');
     }
 
     const client = new MongoClient(connectionString);
     await client.connect();
 
     database = client.db(
-        process.env.MONGODB_DB_NAME || "cse341-books-db"
+        process.env.MONGODB_DB_NAME || 'cse341-books-db'
     );
 
-    // Create a unique index for author custom IDs
-    await database.collection("authors").createIndex(
+    // Create a unique index for author custom IDs.
+    await database.collection('authors').createIndex(
         { id: 1 },
         { unique: true }
+    );
+
+    // Create a unique index for book custom IDs.
+    await database.collection('books').createIndex(
+        { id: 1 },
+        { unique: true }
+    );
+
+    // Create an index for book-author relationships.
+    await database.collection('books').createIndex(
+        { authorId: 1 }
     );
 
     return database;
@@ -28,7 +39,9 @@ const connectToDb = async () => {
 
 const getDb = () => {
     if (!database) {
-        throw new Error("Database not initialized. Call connectToDb first.");
+        throw new Error(
+            'Database not initialized. Call connectToDb first.'
+        );
     }
 
     return database;
