@@ -1,5 +1,13 @@
+
 import express from 'express';
-import { getBooksHandler, getBookByIdHandler } from './controllers/books.js';
+
+import {
+    getBooksHandler,
+    getBookByIdHandler,
+    createBookHandler,
+    updateBookHandler,
+    deleteBookHandler
+} from './controllers/books.js';
 
 import {
     getAllAuthorsController,
@@ -7,7 +15,6 @@ import {
     createAuthorController,
     updateAuthorController,
     deleteAuthorController
-
 } from './controllers/authors.js';
 
 const router = express.Router();
@@ -34,26 +41,13 @@ const router = express.Router();
  *             schema:
  *               type: array
  *               items:
- *                 type: object
- *                 properties:
- *                   _id:
- *                     type: string
- *                     example: "672a12345678901234567890"
- *                   id:
- *                     type: string
- *                     example: "b1"
- *                   title:
- *                     type: string
- *                     example: "As in Heaven, So on Earth"
- *                   author:
- *                     type: string
- *                     example: "Jeffrey R. Holland and Patricia T. Holland"
- *                   publicationDate:
- *                     type: string
- *                     format: date
- *                     example: "1989-01-01"
+ *                 $ref: '#/components/schemas/Book'
  *       500:
  *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/books', getBooksHandler);
 
@@ -62,13 +56,13 @@ router.get('/books', getBooksHandler);
  * /books/{id}:
  *   get:
  *     summary: Retrieve a book by ID
- *     description: Returns a single book matching the specified ID.
+ *     description: Returns a single book matching the specified custom ID.
  *     tags: [Books]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: The unique identifier of the book.
+ *         description: The unique custom identifier of the book.
  *         schema:
  *           type: string
  *         example: "b1"
@@ -78,33 +72,222 @@ router.get('/books', getBooksHandler);
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 _id:
- *                   type: string
- *                   example: "672a12345678901234567890"
- *                 id:
- *                   type: string
- *                   example: "b1"
- *                 title:
- *                   type: string
- *                   example: "As in Heaven, So on Earth"
- *                 author:
- *                   type: string
- *                   example: "Jeffrey R. Holland and Patricia T. Holland"
- *                 publicationDate:
- *                   type: string
- *                   format: date
- *                   example: "1989-01-01"
- *       400:
- *         description: Invalid book ID.
+ *               $ref: '#/components/schemas/Book'
  *       404:
  *         description: Book not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/books/:id', getBookByIdHandler);
 
+/**
+ * @swagger
+ * /books:
+ *   post:
+ *     summary: Create a new book
+ *     description: Creates a new book associated with an existing author.
+ *     tags: [Books]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/NewBook'
+ *           example:
+ *             id: "b4"
+ *             authorId: "a1"
+ *             title: "The Ministry of the Twelve"
+ *             publicationDate: "2016-01-01"
+ *     responses:
+ *       201:
+ *         description: Book successfully created.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Book'
+ *       400:
+ *         description: Invalid book data or specified author does not exist.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       409:
+ *         description: A book with this custom ID already exists.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.post('/books', createBookHandler);
+
+/**
+ * @swagger
+ * /books/{id}:
+ *   put:
+ *     summary: Update an existing book
+ *     description: Replaces the editable fields of a book. The custom ID cannot be changed.
+ *     tags: [Books]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The unique custom identifier of the book to update.
+ *         schema:
+ *           type: string
+ *         example: "b1"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/BookUpdate'
+ *           example:
+ *             authorId: "a1"
+ *             title: "Updated Book Title"
+ *             publicationDate: "2020-05-15"
+ *     responses:
+ *       200:
+ *         description: Book successfully updated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Book'
+ *       400:
+ *         description: Invalid book data, attempted ID modification, or specified author does not exist.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Book not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.put('/books/:id', updateBookHandler);
+
+/**
+ * @swagger
+ * /books/{id}:
+ *   delete:
+ *     summary: Delete a book
+ *     description: Deletes a book using its custom ID.
+ *     tags: [Books]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The unique custom identifier of the book to delete.
+ *         schema:
+ *           type: string
+ *         example: "b1"
+ *     responses:
+ *       204:
+ *         description: Book successfully deleted.
+ *       404:
+ *         description: Book not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.delete('/books/:id', deleteBookHandler);
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Book:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           example: "672a12345678901234567890"
+ *         id:
+ *           type: string
+ *           example: "b1"
+ *         authorId:
+ *           type: string
+ *           example: "a1"
+ *         title:
+ *           type: string
+ *           example: "As in Heaven, So on Earth"
+ *         publicationDate:
+ *           type: string
+ *           format: date
+ *           example: "1989-01-01"
+ *     NewBook:
+ *       type: object
+ *       required:
+ *         - id
+ *         - authorId
+ *         - title
+ *         - publicationDate
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: "b4"
+ *         authorId:
+ *           type: string
+ *           example: "a1"
+ *         title:
+ *           type: string
+ *           example: "The Ministry of the Twelve"
+ *         publicationDate:
+ *           type: string
+ *           format: date
+ *           example: "2016-01-01"
+ *     BookUpdate:
+ *       type: object
+ *       required:
+ *         - authorId
+ *         - title
+ *         - publicationDate
+ *       properties:
+ *         authorId:
+ *           type: string
+ *           example: "a1"
+ *         title:
+ *           type: string
+ *           example: "Updated Book Title"
+ *         publicationDate:
+ *           type: string
+ *           format: date
+ *           example: "2020-05-15"
+ *     Error:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *           example: "Book not found."
+ */
 
 /**
  * @swagger
@@ -145,7 +328,6 @@ router.get('/books/:id', getBookByIdHandler);
  *         description: Internal server error.
  */
 router.get('/authors', getAllAuthorsController);
-
 
 /**
  * @swagger
@@ -188,7 +370,6 @@ router.get('/authors', getAllAuthorsController);
  */
 router.get('/authors/:id', getAuthorByIdController);
 
-
 /**
  * @swagger
  * /authors:
@@ -227,7 +408,6 @@ router.get('/authors/:id', getAuthorByIdController);
  *         description: Internal server error.
  */
 router.post('/authors', createAuthorController);
-
 
 /**
  * @swagger
@@ -272,7 +452,6 @@ router.post('/authors', createAuthorController);
  */
 router.put('/authors/:id', updateAuthorController);
 
-
 /**
  * @swagger
  * /authors/{id}:
@@ -299,6 +478,5 @@ router.put('/authors/:id', updateAuthorController);
  *         description: Internal server error.
  */
 router.delete('/authors/:id', deleteAuthorController);
-
 
 export default router;

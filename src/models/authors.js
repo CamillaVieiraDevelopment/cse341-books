@@ -1,39 +1,34 @@
-
-import { getDb } from "../db/connect.js";
+// src/models/authors.js
+import { getDb } from '../db/connect.js';
 
 const getAllAuthors = async () => {
     const db = getDb();
-    const authorsCollection = db.collection("authors");
+    const authorsCollection = db.collection('authors');
 
-    const authors = await authorsCollection.find().toArray();
-
-    return authors;
+    return await authorsCollection.find().toArray();
 };
+
 const getAuthorById = async (id) => {
     const db = getDb();
-    const authorsCollection = db.collection("authors");
+    const authorsCollection = db.collection('authors');
 
-    const author = await authorsCollection.findOne({ id });
-
-    return author;
+    return await authorsCollection.findOne({ id });
 };
 
 const createAuthor = async (author) => {
     const db = getDb();
-    const authorsCollection = db.collection("authors");
+    const authorsCollection = db.collection('authors');
 
     const result = await authorsCollection.insertOne(author);
 
-    const createdAuthor = await authorsCollection.findOne({
+    return await authorsCollection.findOne({
         _id: result.insertedId
     });
-
-    return createdAuthor;
 };
 
 const updateAuthor = async (id, author) => {
     const db = getDb();
-    const authorsCollection = db.collection("authors");
+    const authorsCollection = db.collection('authors');
 
     const result = await authorsCollection.updateOne(
         { id },
@@ -50,32 +45,35 @@ const updateAuthor = async (id, author) => {
 const deleteAuthor = async (id) => {
     const db = getDb();
 
-    const authorsCollection = db.collection("authors");
-    const booksCollection = db.collection("books");
+    const authorsCollection = db.collection('authors');
+    const booksCollection = db.collection('books');
 
-    // Check whether the author exists
+    // Check whether the author exists.
     const author = await authorsCollection.findOne({ id });
 
     if (!author) {
-        return { status: "not_found" };
+        return { status: 'not_found' };
     }
 
-    // Check whether the author has associated books
+    // Check whether the author has associated books.
     const associatedBook = await booksCollection.findOne({
         authorId: id
     });
 
     if (associatedBook) {
-        return { status: "has_books" };
+        return { status: 'has_books' };
     }
 
-    // Delete the author
+    // Delete the author.
     await authorsCollection.deleteOne({ id });
 
-    return { status: "deleted" };
+    return { status: 'deleted' };
 };
 
-
-
 export {
-    getAllAuthors, getAuthorById, createAuthor, updateAuthor, deleteAuthor};
+    getAllAuthors,
+    getAuthorById,
+    createAuthor,
+    updateAuthor,
+    deleteAuthor
+};
