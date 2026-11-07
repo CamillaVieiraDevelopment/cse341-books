@@ -126,6 +126,246 @@
           }
         }
       }
+    },
+    "/authors": {
+      "get": {
+        "summary": "Retrieve all authors",
+        "description": "Returns a list of all authors stored in the database.",
+        "tags": [
+          "Authors"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the list of authors.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "_id": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string",
+                        "example": "a1"
+                      },
+                      "name": {
+                        "type": "string",
+                        "example": "Jeffrey R. Holland"
+                      },
+                      "birthYear": {
+                        "type": "integer",
+                        "example": 1940
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new author",
+        "description": "Creates a new author in the database.",
+        "tags": [
+          "Authors"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "name",
+                  "birthYear"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "a5"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "C. S. Lewis"
+                  },
+                  "birthYear": {
+                    "type": "integer",
+                    "example": 1898
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Author successfully created."
+          },
+          "400": {
+            "description": "Invalid author data."
+          },
+          "409": {
+            "description": "An author with this ID already exists."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      }
+    },
+    "/authors/{id}": {
+      "get": {
+        "summary": "Retrieve an author by ID",
+        "description": "Returns a single author matching the specified ID.",
+        "tags": [
+          "Authors"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "The unique identifier of the author.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "a1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the author.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "_id": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string",
+                      "example": "a1"
+                    },
+                    "name": {
+                      "type": "string",
+                      "example": "Jeffrey R. Holland"
+                    },
+                    "birthYear": {
+                      "type": "integer",
+                      "example": 1940
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Author not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      },
+      "put": {
+        "summary": "Update an existing author",
+        "description": "Updates an author's name and birth year. The custom ID cannot be changed.",
+        "tags": [
+          "Authors"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "The unique identifier of the author to update.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "a1"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "birthYear"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Jeffrey R. Holland"
+                  },
+                  "birthYear": {
+                    "type": "integer",
+                    "example": 1940
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Author successfully updated."
+          },
+          "400": {
+            "description": "Invalid author data or attempted ID modification."
+          },
+          "404": {
+            "description": "Author not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an author",
+        "description": "Deletes an author only if no books are associated with them.",
+        "tags": [
+          "Authors"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "The unique identifier of the author to delete.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "a5"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Author successfully deleted."
+          },
+          "404": {
+            "description": "Author not found."
+          },
+          "409": {
+            "description": "Cannot delete author because associated books exist."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      }
     }
   },
   "components": {},
@@ -133,6 +373,10 @@
     {
       "name": "Books",
       "description": "Endpoints for managing books"
+    },
+    {
+      "name": "Authors",
+      "description": "Endpoints for managing authors"
     }
   ]
 }

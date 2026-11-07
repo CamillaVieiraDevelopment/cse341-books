@@ -13,7 +13,15 @@ const connectToDb = async () => {
     const client = new MongoClient(connectionString);
     await client.connect();
 
-    database = client.db(process.env.MONGODB_DB_NAME || "cse341-books-db");
+    database = client.db(
+        process.env.MONGODB_DB_NAME || "cse341-books-db"
+    );
+
+    // Create a unique index for author custom IDs
+    await database.collection("authors").createIndex(
+        { id: 1 },
+        { unique: true }
+    );
 
     return database;
 };
